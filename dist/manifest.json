@@ -1,0 +1,12 @@
+{
+  "apiVersion": 1,
+  "id": "activity-heatmap",
+  "name": "Activity heatmap",
+  "version": "1.0.0",
+  "minAppVersion": "0.6.0",
+  "description": "A year-at-a-glance map of the days you studied, how intensely, and your streaks. Reads your sessions; never changes them.",
+  "author": "Huskhd",
+  "main": "main.js",
+  "backend": "backend.cjs",
+  "styles": "styles.css"
+}
