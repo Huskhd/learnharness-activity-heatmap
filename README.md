@@ -86,6 +86,16 @@ What this plugin does:
 - **Focused time:** the time between consecutive actions, ignoring gaps longer than 15 minutes. It is an estimate.
 - **Square colour:** each day is shaded relative to your busiest day.
 
+## Development and release automation
+
+Development happens on the permanent `dev` branch; reviewed `dev → main` pull requests
+promote releases. See [the development and release guide](docs/releases.md) for local
+checks, the owner setup checklist, release-please, and publishing/recovery steps.
+
+Release automation is disabled until the owner explicitly enables it after reviewing
+the workflows and configuring protection. Installing this plugin still needs no build
+step or development tools.
+
 ## License
 
 [MIT](LICENSE)
