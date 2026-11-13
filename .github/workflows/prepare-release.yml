@@ -1,0 +1,41 @@
+name: Prepare release
+
+# Deliberately manual: owner approval and branch rules must come first.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-lifecycle
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main' && vars.RELEASE_AUTOMATION_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6 (Node 24 runtime)
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6 (Node 24 runtime)
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Check baseline, synchronization, and pending release labels
+        run: node scripts/prepare-release.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Prepare version and changelog PR into dev (never publish here)
+        uses: googleapis/release-please-action@0b6b3fc0186a2f7118bfd88fab9ea481e1839504 # v5.0.0
+        with:
+          target-branch: dev
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          skip-github-release: true

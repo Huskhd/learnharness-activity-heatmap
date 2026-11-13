@@ -1,0 +1,43 @@
+name: Validate plugin
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate plugin (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6 (Node 24 runtime)
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6 (Node 24 runtime)
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Check JavaScript syntax
+        run: |
+          node --check dist/backend.cjs
+          node --input-type=module --check < dist/main.js
+        shell: bash
+      - name: Test packaging
+        run: python -m unittest discover -s tests -p "test_*.py"
+      - name: Test release guards
+        run: node --test tests/release-guards.test.mjs
+      - name: Validate and build installable archive
+        run: python scripts/package_plugin.py --output-dir release-artifacts

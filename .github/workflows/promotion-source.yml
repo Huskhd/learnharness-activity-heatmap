@@ -1,0 +1,38 @@
+name: Promotion source
+
+# Trusted base-branch workflow only: NEVER check out or execute PR-head code here.
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: promotion-source-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  source:
+    name: Promotion source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8 (Node 24 runtime)
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              ...context.repo, pull_number: context.issue.number,
+            });
+            const eventPR = context.payload.pull_request;
+            if (pr.head.sha !== eventPR.head.sha || pr.base.ref !== eventPR.base.ref) {
+              core.setFailed('Stale event. Re-run the current promotion check.');
+              return;
+            }
+            if (pr.base.ref !== 'main' || pr.head.ref !== 'dev' ||
+                !pr.head.repo || pr.head.repo.id !== pr.base.repo.id) {
+              core.setFailed('Only dev from this same repository may be promoted to main.');
+              return;
+            }
+            core.info('Same-repository dev → main promotion. Human approvals are enforced separately.');
